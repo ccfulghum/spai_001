@@ -1,0 +1,197 @@
+     <!-- 2. Load Google Maps API -->
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMzn5ZraG6sXxyFWLJ-WO8-Q0fRq8vrvM&callback=initMap" async defer></script> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Store Locator with ZIP Boundaries</title>
+    <style>
+        #map { height: 800px; width: 100%; margin-top: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .controls { padding: 20px; background: #f8f9fa; border-radius: 8px; font-family: sans-serif; }
+        #status { font-weight: bold; margin-top: 10px; padding: 5px; }
+        button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .marker-tooltip {
+            position: absolute;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMzn5ZraG6sXxyFWLJ-WO8-Q0fRq8vrvM&callback=initMap&libraries=marker&v=weekly" async defer></script>
+</head>
+<body>
+    <div class="controls">
+        <h3>Store Data Loader & ZIP Boundaries</h3>
+        <input type="file" id="csvFileInput" accept=".csv" />
+        <button id="submitBtn">Load Store Points</button>
+        <input type="file" id="zipFileInput" accept=".json" style="display:none" />
+        <button id="zipBtn">Show ZIP Boundaries</button>
+        <div id="status">Status: Ready</div>
+    </div>
+    <div id="map"></div>
+    <script>
+        let map;
+        let markers = [];
+        let zipPolygons = [];
+        
+        async function initMap() {
+            const { Map } = await google.maps.importLibrary("maps");
+            map = new Map(document.getElementById("map"), {
+                zoom: 12,
+                center: { lat: 32.7551, lng: -97.3308 },
+                mapId: "YOUR_MAP_ID"
+            });
+            
+            // Store points button
+            document.getElementById('submitBtn').addEventListener('click', () => {
+                const fileInput = document.getElementById('csvFileInput');
+                if (fileInput.files[0]) {
+                    updateStatus("Processing file...");
+                    parseData(fileInput.files[0]);
+                } else {
+                    alert("Please browse and select a CSV file first.");
+                }
+            });
+            
+            // ZIP boundaries button - triggers file picker
+            document.getElementById('zipBtn').addEventListener('click', () => {
+                document.getElementById('zipFileInput').click();
+            });
+            
+            // Handle ZIP file selection
+            document.getElementById('zipFileInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    updateStatus("Loading ZIP boundaries...");
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const zipData = JSON.parse(event.target.result);
+                            displayZipBoundaries(zipData);
+                        } catch (error) {
+                            updateStatus('Error parsing JSON: ' + error.message, 'red');
+                        }
+                    };
+                    reader.onerror = () => {
+                        updateStatus('Error reading file', 'red');
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+        
+        function parseData(file) {
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    updateStatus(`Read ${results.data.length} rows. Drawing...`);
+                    drawAdvancedMarkers(results.data);
+                }
+            });
+        }
+        
+        async function drawAdvancedMarkers(data) {
+            const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+            
+            markers.forEach(m => m.map = null);
+            markers = [];
+            const bounds = new google.maps.LatLngBounds();
+            
+            data.forEach(store => {
+                if (store.latitude && store.longitude) {
+                    const pin = new PinElement({
+                        scale: 1.8,
+                        background: "#007bff",
+                        borderColor: "#ffffff"
+                    });
+                    
+                    const marker = new AdvancedMarkerElement({
+                        map: map,
+                        position: { lat: store.latitude, lng: store.longitude },
+                        title: store.storename,
+                        content: pin.element
+                    });
+                    
+                    // Add hover tooltip for stores
+                    marker.content.addEventListener('mouseenter', (e) => {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'marker-tooltip';
+                        tooltip.innerHTML = `<strong>${store.storename || 'Store'}</strong><br>Sales: $${store.sales || 'N/A'}`;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = e.pageX + 10 + 'px';
+                        tooltip.style.top = e.pageY - 30 + 'px';
+                        document.body.appendChild(tooltip);
+                        marker.content.tooltipElement = tooltip;
+                    });
+                    
+                    marker.content.addEventListener('mouseleave', () => {
+                        if (marker.content.tooltipElement) {
+                            marker.content.tooltipElement.remove();
+                        }
+                    });
+                    
+                    markers.push(marker);
+                    bounds.extend(marker.position);
+                }
+            });
+            
+            if (markers.length > 0) {
+                map.fitBounds(bounds);
+                updateStatus(`Success: ${markers.length} store points displayed.`, "green");
+            } else {
+                updateStatus("Error: No valid points found. Check CSV headers.", "red");
+            }
+        }
+        
+        function displayZipBoundaries(geoJsonData) {
+            // Clear existing polygons
+            zipPolygons.forEach(p => p.setMap(null));
+            zipPolygons = [];
+            
+            geoJsonData.features.forEach(feature => {
+                const coords = feature.geometry.coordinates[0].map(c => ({lat: c[1], lng: c[0]}));
+                const zipCode = feature.properties.zipcode;
+                const population = feature.properties.population;
+                
+                const polygon = new google.maps.Polygon({
+                    paths: coords,
+                    strokeColor: '#FF0000',
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.15,
+                    map: map
+                });
+                
+                const infoWindow = new google.maps.InfoWindow();
+                
+                polygon.addListener('mouseover', (e) => {
+                    infoWindow.setContent(`<strong>ZIP: ${zipCode}</strong><br>Population: ${population.toLocaleString()}`);
+                    infoWindow.setPosition(e.latLng);
+                    infoWindow.open(map);
+                });
+                
+                polygon.addListener('mouseout', () => {
+                    infoWindow.close();
+                });
+                
+                zipPolygons.push(polygon);
+            });
+            updateStatus(`${zipPolygons.length} ZIP boundaries loaded`, 'green');
+        }
+        
+        function updateStatus(msg, color = "black") {
+            const el = document.getElementById('status');
+            el.innerText = "Status: " + msg;
+            el.style.color = color;
+        }
+    </script>
+</body>
+</html>
