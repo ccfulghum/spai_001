@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Store Locator with ZIP Boundaries</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare DMO - SpAItial Intel</title>
     <style>
         * {
             margin: 0;
@@ -10,17 +12,110 @@
         }
         
         body {
-            font-family: sans-serif;
+            font-family: Arial, sans-serif;
             overflow: hidden;
         }
         
-        /* Sidebar styles */
+        /* SpAItial Intel Header Styles */
+        .ai-box {
+            border: 2px solid currentColor;
+            padding: 2px 6px;
+            display: inline-block;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1001;
+            height: 70px;
+        }
+        
+        .header-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .navbar {
+            display: flex;
+            gap: 30px;
+            margin-right: 30px;
+        }
+        
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropbtn {
+            background-color: transparent;
+            color: #333;
+            padding: 16px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            right: 0;
+        }
+        
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        .dropdown:hover .dropbtn {
+            background-color: #f1f1f1;
+        }
+        
+        .login-btn {
+            padding: 10px 25px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .login-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Sidebar styles - adjusted for header */
         .controls {
             position: fixed;
             left: 0;
-            top: 0;
+            top: 70px;
             width: 280px;
-            height: 100vh;
+            height: calc(100vh - 70px);
             padding: 20px;
             background: #f8f9fa;
             overflow-y: auto;
@@ -34,11 +129,12 @@
             font-size: 18px;
         }
         
-        /* Map takes remaining space */
+        /* Map takes remaining space - adjusted for header */
         #map { 
-            height: 100vh; 
+            height: calc(100vh - 70px);
             width: calc(100% - 280px); 
             margin-left: 280px;
+            margin-top: 70px;
             border: none;
             border-radius: 0;
         }
@@ -53,10 +149,10 @@
             font-size: 14px;
         }
         
-        button { 
+        .controls button { 
             width: 100%;
             padding: 12px 20px;
-            background: #1a73e8;
+            background: #007bff;
             color: white;
             border: none;
             border-radius: 4px;
@@ -67,8 +163,8 @@
             transition: background 0.3s;
         }
         
-        button:hover {
-            background: #1557b0;
+        .controls button:hover {
+            background: #0056b3;
         }
         
         #status {
@@ -99,13 +195,14 @@
                 width: 100%;
                 height: auto;
                 position: relative;
+                top: 70px;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             }
             
             #map {
                 width: 100%;
                 margin-left: 0;
-                height: calc(100vh - 300px);
+                height: calc(100vh - 370px);
             }
         }
     </style>
@@ -113,6 +210,46 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMzn5ZraG6sXxyFWLJ-WO8-Q0fRq8vrvM&callback=initMap&libraries=marker&v=weekly" async defer></script>
 </head>
 <body>
+    <!-- SpAItial Intel Header -->
+    <header>
+        <div class="header-left">
+            Sp<span class="ai-box">AI</span>tial Intel
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div class="navbar">
+                <div class="dropdown">
+                    <button class="dropbtn">About Us</button>
+                    <div class="dropdown-content">
+                        <a href="index.html">Home</a>
+                        <a href="#our-story">Our Story</a>
+                        <a href="#team">Team</a>
+                        <a href="#mission">Mission</a>
+                    </div>
+                </div>
+                
+                <div class="dropdown">
+                    <button class="dropbtn">Products</button>
+                    <div class="dropdown-content">
+                        <a href="#spatial-analytics">Spatial Analytics</a>
+                        <a href="#demographic-tools">Demographic Tools</a>
+                        <a href="#location-intel">Location Intelligence</a>
+                    </div>
+                </div>
+                
+                <div class="dropdown">
+                    <button class="dropbtn">Contact</button>
+                    <div class="dropdown-content">
+                        <a href="#email">Email Us</a>
+                        <a href="#phone">Call Us</a>
+                        <a href="#location">Our Location</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="login-btn">Login</button>
+        </div>
+    </header>
+    
     <div class="controls">
         <h3>Store Data Loader & ZIP Boundaries</h3>
         
