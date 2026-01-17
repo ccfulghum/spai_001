@@ -1,0 +1,18 @@
+# Configuration files with sensitive data
+sp_1/config.js
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
