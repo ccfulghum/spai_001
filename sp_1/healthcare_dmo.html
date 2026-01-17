@@ -206,8 +206,8 @@
             }
         }
     </style>
+    <script src="config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMzn5ZraG6sXxyFWLJ-WO8-Q0fRq8vrvM&callback=initMap&v=weekly" async defer></script>
 </head>
 <body>
     <!-- SpAItial Intel Header -->
@@ -276,12 +276,27 @@
         let zipPolygons = [];
         let blockPolygons = [];
         let radiusCircles = [];
-        
+
+        // Load Google Maps API dynamically
+        function loadGoogleMapsAPI() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&v=weekly`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = function() {
+                console.error('Failed to load Google Maps API');
+                updateStatus('Error: Failed to load Google Maps', 'red');
+            };
+            document.head.appendChild(script);
+        }
+
         function initMap() {
+            console.log('Initializing map...');
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 12,
                 center: { lat: 32.7551, lng: -97.3308 }
             });
+            console.log('Map initialized successfully');
             
             // Store points button
             document.getElementById('submitBtn').addEventListener('click', () => {
@@ -519,6 +534,12 @@
             el.innerText = "Status: " + msg;
             el.style.color = color;
         }
+
+        // Load Google Maps when page is ready
+        window.onload = function() {
+            console.log('Page loaded, loading Google Maps API...');
+            loadGoogleMapsAPI();
+        };
     </script>
 </body>
 </html>
