@@ -207,20 +207,6 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-
-    <!-- Load configuration file with API keys -->
-    <script src="config.js"></script>
-
-    <!-- Dynamically load Google Maps API using config -->
-    <script>
-        (function() {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=marker&v=weekly`;
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-        })();
-    </script>
 </head>
 <body>
     <!-- SpAItial Intel Header -->
@@ -367,14 +353,7 @@
                     marker.content.addEventListener('mouseenter', (e) => {
                         const tooltip = document.createElement('div');
                         tooltip.className = 'marker-tooltip';
-
-                        // Safely create tooltip content to prevent XSS
-                        const storeName = document.createElement('strong');
-                        storeName.textContent = store.storename || 'Store';
-                        tooltip.appendChild(storeName);
-                        tooltip.appendChild(document.createElement('br'));
-                        tooltip.appendChild(document.createTextNode(`Sales: $${store.sales || 'N/A'}`));
-
+                        tooltip.innerHTML = `<strong>${store.storename || 'Store'}</strong><br>Sales: $${store.sales || 'N/A'}`;
                         tooltip.style.display = 'block';
                         tooltip.style.left = e.pageX + 10 + 'px';
                         tooltip.style.top = e.pageY - 30 + 'px';
