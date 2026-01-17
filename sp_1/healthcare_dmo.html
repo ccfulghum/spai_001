@@ -207,6 +207,20 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Load Google Maps API with config
+        (function() {
+            if (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY) {
+                var script = document.createElement('script');
+                script.src = 'https://maps.googleapis.com/maps/api/js?key=' + CONFIG.GOOGLE_MAPS_API_KEY + '&callback=initMap&libraries=marker&v=weekly';
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } else {
+                console.error('CONFIG.GOOGLE_MAPS_API_KEY not found');
+            }
+        })();
+    </script>
 </head>
 <body>
     <!-- SpAItial Intel Header -->
@@ -276,14 +290,15 @@
         let blockPolygons = [];
         let radiusCircles = [];
 
-        function initMap() {
-            // Create the map centered on Fort Worth, TX
-            map = new google.maps.Map(document.getElementById("map"), {
+        async function initMap() {
+            const { Map } = await google.maps.importLibrary("maps");
+            map = new Map(document.getElementById("map"), {
                 zoom: 12,
-                center: { lat: 32.7551, lng: -97.3308 }
+                center: { lat: 32.7551, lng: -97.3308 },
+                mapId: "DEMO_MAP_ID"
             });
 
-            updateStatus("Map loaded successfully!", "green");
+            console.log('Map initialized successfully');
 
             // Store points button
             document.getElementById('submitBtn').addEventListener('click', () => {
@@ -370,15 +385,22 @@
             });
         }
 
-        function drawMarkers(data) {
-            // Clear existing markers
-            markers.forEach(m => m.setMap(null));
+        async function drawAdvancedMarkers(data) {
+            const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+
+            markers.forEach(m => m.map = null);
             markers = [];
             const bounds = new google.maps.LatLngBounds();
 
             data.forEach(store => {
                 if (store.latitude && store.longitude) {
-                    const marker = new google.maps.Marker({
+                    const pin = new PinElement({
+                        scale: 1.8,
+                        background: "#007bff",
+                        borderColor: "#ffffff"
+                    });
+
+                    const marker = new AdvancedMarkerElement({
                         map: map,
                         position: { lat: store.latitude, lng: store.longitude },
                         title: store.storename || 'Store',
@@ -392,17 +414,22 @@
                         }
                     });
 
-                    // Add info window for stores
-                    const infoWindow = new google.maps.InfoWindow({
-                        content: `<strong>${store.storename || 'Store'}</strong><br>Sales: $${store.sales || 'N/A'}`
+                    // Add hover tooltip for stores
+                    marker.content.addEventListener('mouseenter', (e) => {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'marker-tooltip';
+                        tooltip.innerHTML = `<strong>${store.storename || 'Store'}</strong><br>Sales: $${store.sales || 'N/A'}`;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = e.pageX + 10 + 'px';
+                        tooltip.style.top = e.pageY - 30 + 'px';
+                        document.body.appendChild(tooltip);
+                        marker.content.tooltipElement = tooltip;
                     });
 
-                    marker.addListener('mouseover', () => {
-                        infoWindow.open(map, marker);
-                    });
-
-                    marker.addListener('mouseout', () => {
-                        infoWindow.close();
+                    marker.content.addEventListener('mouseleave', () => {
+                        if (marker.content.tooltipElement) {
+                            marker.content.tooltipElement.remove();
+                        }
                     });
 
                     markers.push(marker);
