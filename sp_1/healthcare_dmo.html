@@ -252,14 +252,16 @@
     
     <div class="controls">
         <h3>Store Data Loader & ZIP Boundaries</h3>
-        
+
         <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #555;">Upload Store CSV:</label>
         <input type="file" id="csvFileInput" accept=".csv" />
         <button id="submitBtn">Load Store Points</button>
-        
+
+        <button id="radiusBtn">Draw Radius</button>
+
         <input type="file" id="zipFileInput" accept=".json" style="display:none" />
         <button id="zipBtn">Show ZIP Boundaries</button>
-        
+
         <div id="status">Status: Ready</div>
     </div>
     
@@ -269,6 +271,7 @@
         let map;
         let markers = [];
         let zipPolygons = [];
+        let radiusCircles = [];
         
         async function initMap() {
             const { Map } = await google.maps.importLibrary("maps");
@@ -313,6 +316,15 @@
                     };
                     reader.readAsText(file);
                 }
+            });
+
+            // Draw Radius button
+            document.getElementById('radiusBtn').addEventListener('click', () => {
+                if (markers.length === 0) {
+                    alert("Please load store points first.");
+                    return;
+                }
+                drawRadiusCircles();
             });
         }
         
@@ -385,12 +397,12 @@
             // Clear existing polygons
             zipPolygons.forEach(p => p.setMap(null));
             zipPolygons = [];
-            
+
             geoJsonData.features.forEach(feature => {
                 const coords = feature.geometry.coordinates[0].map(c => ({lat: c[1], lng: c[0]}));
                 const zipCode = feature.properties.zipcode;
                 const population = feature.properties.population;
-                
+
                 const polygon = new google.maps.Polygon({
                     paths: coords,
                     strokeColor: '#FF0000',
@@ -399,22 +411,48 @@
                     fillOpacity: 0.15,
                     map: map
                 });
-                
+
                 const infoWindow = new google.maps.InfoWindow();
-                
+
                 polygon.addListener('mouseover', (e) => {
                     infoWindow.setContent(`<strong>ZIP: ${zipCode}</strong><br>Population: ${population.toLocaleString()}`);
                     infoWindow.setPosition(e.latLng);
                     infoWindow.open(map);
                 });
-                
+
                 polygon.addListener('mouseout', () => {
                     infoWindow.close();
                 });
-                
+
                 zipPolygons.push(polygon);
             });
             updateStatus(`${zipPolygons.length} ZIP boundaries loaded`, 'green');
+        }
+
+        function drawRadiusCircles() {
+            // Clear existing circles
+            radiusCircles.forEach(c => c.setMap(null));
+            radiusCircles = [];
+
+            // 5 miles in meters = 5 * 1609.34
+            const radiusMeters = 5 * 1609.34;
+
+            markers.forEach(marker => {
+                const circle = new google.maps.Circle({
+                    strokeColor: '#00FF00',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#00FF00',
+                    fillOpacity: 0.15,
+                    map: map,
+                    center: marker.position,
+                    radius: radiusMeters
+                });
+
+                radiusCircles.push(circle);
+            });
+
+            updateStatus(`${radiusCircles.length} radius circles (5 miles) drawn`, 'green');
         }
         
         function updateStatus(msg, color = "black") {
