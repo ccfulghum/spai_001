@@ -267,7 +267,7 @@
         <div id="status">Status: Ready</div>
     </div>
     
-    <div id="map"></div>
+   <div id="map" style="height: 100vh; width: 100%;"></div>
     
     <script>
         let map;
@@ -280,8 +280,7 @@
             const { Map } = await google.maps.importLibrary("maps");
             map = new Map(document.getElementById("map"), {
                 zoom: 12,
-                center: { lat: 32.7551, lng: -97.3308 },
-                mapId: "YOUR_MAP_ID"
+                center: { lat: 32.7551, lng: -97.3308 }        
             });
             
             // Store points button
