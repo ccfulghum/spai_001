@@ -533,12 +533,28 @@
     <!-- Load config and Google Maps API -->
     <script src="config.js"></script>
     <script>
-        // Load Google Maps API with key from config
-        var script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key=' + CONFIG.GOOGLE_MAPS_API_KEY + '&callback=initMap';
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
+        // Ensure CONFIG is loaded before proceeding
+        (function() {
+            if (typeof CONFIG === 'undefined' || !CONFIG.GOOGLE_MAPS_API_KEY) {
+                console.error('ERROR: config.js not loaded or GOOGLE_MAPS_API_KEY not found');
+                alert('Configuration error: Unable to load Google Maps API key from config.js');
+                return;
+            }
+
+            // Load Google Maps API with key from config
+            var script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=' + CONFIG.GOOGLE_MAPS_API_KEY + '&callback=initMap';
+            script.async = true;
+            script.defer = true;
+
+            script.onerror = function() {
+                console.error('Failed to load Google Maps API');
+                updateStatus('Failed to load Google Maps API', 'red');
+            };
+
+            document.head.appendChild(script);
+            console.log('Google Maps API script loaded with key from config.js');
+        })();
     </script>
 </body>
 </html>
