@@ -259,6 +259,9 @@
 
         <button id="radiusBtn">Draw Radius</button>
 
+        <input type="file" id="blockFileInput" accept=".json" style="display:none" />
+        <button id="blockBtn">Add Blocks</button>
+
         <input type="file" id="zipFileInput" accept=".json" style="display:none" />
         <button id="zipBtn">Show ZIP Boundaries</button>
 
@@ -271,6 +274,7 @@
         let map;
         let markers = [];
         let zipPolygons = [];
+        let blockPolygons = [];
         let radiusCircles = [];
         
         async function initMap() {
@@ -325,6 +329,32 @@
                     return;
                 }
                 drawRadiusCircles();
+            });
+
+            // Add Blocks button - triggers file picker
+            document.getElementById('blockBtn').addEventListener('click', () => {
+                document.getElementById('blockFileInput').click();
+            });
+
+            // Handle Blocks file selection
+            document.getElementById('blockFileInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    updateStatus("Loading block polygons...");
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const blockData = JSON.parse(event.target.result);
+                            displayBlocks(blockData);
+                        } catch (error) {
+                            updateStatus('Error parsing JSON: ' + error.message, 'red');
+                        }
+                    };
+                    reader.onerror = () => {
+                        updateStatus('Error reading file', 'red');
+                    };
+                    reader.readAsText(file);
+                }
             });
         }
         
@@ -427,6 +457,46 @@
                 zipPolygons.push(polygon);
             });
             updateStatus(`${zipPolygons.length} ZIP boundaries loaded`, 'green');
+        }
+
+        function displayBlocks(geoJsonData) {
+            // Clear existing block polygons
+            blockPolygons.forEach(p => p.setMap(null));
+            blockPolygons = [];
+
+            geoJsonData.features.forEach(feature => {
+                const coords = feature.geometry.coordinates[0].map(c => ({lat: c[1], lng: c[0]}));
+
+                // Get properties if they exist
+                const blockId = feature.properties?.GEOID || feature.properties?.id || 'Unknown';
+                const blockName = feature.properties?.NAME || feature.properties?.name || '';
+
+                const polygon = new google.maps.Polygon({
+                    paths: coords,
+                    strokeColor: '#0066FF',
+                    strokeWeight: 2,
+                    fillColor: '#0066FF',
+                    fillOpacity: 0.15,
+                    map: map
+                });
+
+                const infoWindow = new google.maps.InfoWindow();
+
+                polygon.addListener('mouseover', (e) => {
+                    let content = `<strong>Block: ${blockId}</strong>`;
+                    if (blockName) content += `<br>Name: ${blockName}`;
+                    infoWindow.setContent(content);
+                    infoWindow.setPosition(e.latLng);
+                    infoWindow.open(map);
+                });
+
+                polygon.addListener('mouseout', () => {
+                    infoWindow.close();
+                });
+
+                blockPolygons.push(polygon);
+            });
+            updateStatus(`${blockPolygons.length} block polygons loaded`, 'green');
         }
 
         function drawRadiusCircles() {
