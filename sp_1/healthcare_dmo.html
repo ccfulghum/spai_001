@@ -208,6 +208,16 @@
     </style>
     <script src="config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Load Google Maps API after config.js is loaded
+        if (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY) {
+            var script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=' + CONFIG.GOOGLE_MAPS_API_KEY + '&callback=initMap';
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+    </script>
 </head>
 <body>
     <!-- SpAItial Intel Header -->
@@ -522,33 +532,6 @@
             el.innerText = "Status: " + msg;
             el.style.color = color;
         }
-
-        // Load Google Maps API after config.js is loaded
-        (function() {
-            // Wait for config to be available
-            function loadMapsAPI() {
-                if (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY) {
-                    const script = document.createElement('script');
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap`;
-                    script.async = true;
-                    script.defer = true;
-                    script.onerror = function() {
-                        console.error('Failed to load Google Maps');
-                        updateStatus('Error: Failed to load Google Maps', 'red');
-                    };
-                    document.head.appendChild(script);
-                } else {
-                    console.error('CONFIG not loaded');
-                    setTimeout(loadMapsAPI, 100);
-                }
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', loadMapsAPI);
-            } else {
-                loadMapsAPI();
-            }
-        })();
     </script>
 </body>
 </html>
