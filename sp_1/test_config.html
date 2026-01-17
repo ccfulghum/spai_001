@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .result {
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .label {
+            font-weight: bold;
+            margin-top: 15px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>Config.js Test</h1>
+
+        <div class="label">Config File Status:</div>
+        <div id="configStatus" class="result">Loading...</div>
+
+        <div class="label">API Key Value:</div>
+        <div id="apiKeyValue" class="result">Loading...</div>
+
+        <div class="label">API Key Length:</div>
+        <div id="apiKeyLength" class="result">Loading...</div>
+
+        <div class="label">Google Maps Script URL:</div>
+        <div id="scriptUrl" class="result">Loading...</div>
+    </div>
+
+    <!-- Load config.js -->
+    <script src="config.js"></script>
+
+    <script>
+        // Test config loading
+        try {
+            // Check if CONFIG exists
+            if (typeof CONFIG === 'undefined') {
+                document.getElementById('configStatus').innerHTML = '<span class="error">ERROR: CONFIG object not found!</span>';
+                document.getElementById('apiKeyValue').innerHTML = '<span class="error">N/A</span>';
+                document.getElementById('apiKeyLength').innerHTML = '<span class="error">N/A</span>';
+                document.getElementById('scriptUrl').innerHTML = '<span class="error">N/A</span>';
+            } else {
+                document.getElementById('configStatus').innerHTML = '<span class="success">✓ CONFIG object loaded successfully</span>';
+
+                // Check if API key exists
+                if (CONFIG.GOOGLE_MAPS_API_KEY) {
+                    const apiKey = CONFIG.GOOGLE_MAPS_API_KEY;
+                    document.getElementById('apiKeyValue').innerHTML = '<span class="success">' + apiKey + '</span>';
+                    document.getElementById('apiKeyLength').innerHTML = '<span class="success">' + apiKey.length + ' characters</span>';
+
+                    // Show what the Google Maps URL would be
+                    const mapsUrl = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback=initMap';
+                    document.getElementById('scriptUrl').innerHTML = '<span class="success">' + mapsUrl + '</span>';
+                } else {
+                    document.getElementById('apiKeyValue').innerHTML = '<span class="error">ERROR: GOOGLE_MAPS_API_KEY not found in CONFIG!</span>';
+                    document.getElementById('apiKeyLength').innerHTML = '<span class="error">N/A</span>';
+                    document.getElementById('scriptUrl').innerHTML = '<span class="error">N/A</span>';
+                }
+            }
+        } catch (error) {
+            document.getElementById('configStatus').innerHTML = '<span class="error">ERROR: ' + error.message + '</span>';
+            document.getElementById('apiKeyValue').innerHTML = '<span class="error">N/A</span>';
+            document.getElementById('apiKeyLength').innerHTML = '<span class="error">N/A</span>';
+            document.getElementById('scriptUrl').innerHTML = '<span class="error">N/A</span>';
+        }
+    </script>
+</body>
+</html>
