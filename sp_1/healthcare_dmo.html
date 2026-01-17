@@ -531,16 +531,8 @@
     </script>
 
     <!-- Load Google Maps API with callback -->
-    <script src="config.js"></script>
-    <script>
-        // Create script tag with API key from config
-        (function() {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap`;
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-        })();
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7Rztr57OSJjXEASCk3zgJWjpE9T0Ihbs&callback=initMap">
     </script>
 </body>
 </html>
