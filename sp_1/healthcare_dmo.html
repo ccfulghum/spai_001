@@ -277,25 +277,14 @@
         let blockPolygons = [];
         let radiusCircles = [];
 
-        // Load Google Maps API dynamically using config.js
-        function loadGoogleMapsAPI() {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&v=weekly`;
-            script.async = true;
-            script.defer = true;
-            script.onerror = function() {
-                console.error('Failed to load Google Maps API');
-                updateStatus('Error: Failed to load Google Maps', 'red');
-            };
-            document.head.appendChild(script);
-        }
-
         function initMap() {
             // Initialize map centered on Fort Worth, TX
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 12,
-                center: { lat: 32.7551, lng: -97.3308 } // Fort Worth, TX
+                center: { lat: 32.7551, lng: -97.3308 }
             });
+
+            console.log('Map initialized successfully');
 
             // Store points button
             document.getElementById('submitBtn').addEventListener('click', () => {
@@ -534,10 +523,32 @@
             el.style.color = color;
         }
 
-        // Load Google Maps when page is ready
-        window.onload = function() {
-            loadGoogleMapsAPI();
-        };
+        // Load Google Maps API after config.js is loaded
+        (function() {
+            // Wait for config to be available
+            function loadMapsAPI() {
+                if (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY) {
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap`;
+                    script.async = true;
+                    script.defer = true;
+                    script.onerror = function() {
+                        console.error('Failed to load Google Maps');
+                        updateStatus('Error: Failed to load Google Maps', 'red');
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    console.error('CONFIG not loaded');
+                    setTimeout(loadMapsAPI, 100);
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadMapsAPI);
+            } else {
+                loadMapsAPI();
+            }
+        })();
     </script>
 </body>
 </html>
