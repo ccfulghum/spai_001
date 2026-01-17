@@ -1,7 +1,4 @@
-// Configuration file template
-// Copy this file to config.js and add your actual API keys
+// Google Maps API Configuration
 const CONFIG = {
-   GOOGLE_MAPS_API_KEY: 'AIzaSyB7Rztr57OSJjXEASCk3zgJWjpE9T0Ihbs'
+    GOOGLE_MAPS_API_KEY: 'AIzaSyAMzn5ZraG6sXxyFWLJ-WO8-Q0fRq8vrvM'
 };
-
-
