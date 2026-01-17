@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Healthcare DMO - SpAItial Intel</title>
+<<<<<<< Updated upstream
     <style>
         * {
             margin: 0;
@@ -206,6 +207,10 @@
             }
         }
     </style>
+=======
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="config.js"></script>
+>>>>>>> Stashed changes
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
         // Load Google Maps API with config
@@ -300,7 +305,8 @@
 
             console.log('Map initialized successfully');
 
-            // Store points button
+
+ 	 // Store points button
             document.getElementById('submitBtn').addEventListener('click', () => {
                 const fileInput = document.getElementById('csvFileInput');
                 if (fileInput.files[0]) {
@@ -310,6 +316,7 @@
                     alert("Please browse and select a CSV file first.");
                 }
             });
+
 
             // ZIP boundaries button - triggers file picker
             document.getElementById('zipBtn').addEventListener('click', () => {
@@ -373,25 +380,25 @@
             });
         }
 
-        function parseData(file) {
+     function parseData(file) {
             Papa.parse(file, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
                     updateStatus(`Read ${results.data.length} rows. Drawing...`);
-                    drawMarkers(results.data);
+                    drawAdvancedMarkers(results.data);
                 }
             });
         }
-
+        
         async function drawAdvancedMarkers(data) {
             const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-
+            
             markers.forEach(m => m.map = null);
             markers = [];
             const bounds = new google.maps.LatLngBounds();
-
+            
             data.forEach(store => {
                 if (store.latitude && store.longitude) {
                     const pin = new PinElement({
@@ -399,21 +406,14 @@
                         background: "#007bff",
                         borderColor: "#ffffff"
                     });
-
+                    
                     const marker = new AdvancedMarkerElement({
                         map: map,
                         position: { lat: store.latitude, lng: store.longitude },
-                        title: store.storename || 'Store',
-                        icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            scale: 8,
-                            fillColor: "#007bff",
-                            fillOpacity: 1,
-                            strokeColor: "#ffffff",
-                            strokeWeight: 2
-                        }
+                        title: store.storename,
+                        content: pin.element
                     });
-
+                    
                     // Add hover tooltip for stores
                     marker.content.addEventListener('mouseenter', (e) => {
                         const tooltip = document.createElement('div');
@@ -425,18 +425,18 @@
                         document.body.appendChild(tooltip);
                         marker.content.tooltipElement = tooltip;
                     });
-
+                    
                     marker.content.addEventListener('mouseleave', () => {
                         if (marker.content.tooltipElement) {
                             marker.content.tooltipElement.remove();
                         }
                     });
-
+                    
                     markers.push(marker);
                     bounds.extend(marker.position);
                 }
             });
-
+            
             if (markers.length > 0) {
                 map.fitBounds(bounds);
                 updateStatus(`Success: ${markers.length} store points displayed.`, "green");
@@ -444,6 +444,7 @@
                 updateStatus("Error: No valid points found. Check CSV headers.", "red");
             }
         }
+ 
 
         function displayZipBoundaries(geoJsonData) {
             // Clear existing polygons
